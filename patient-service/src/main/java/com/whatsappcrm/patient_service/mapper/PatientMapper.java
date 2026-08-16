@@ -21,6 +21,7 @@ public class PatientMapper {
                 .city(request.getCity())
                 .state(request.getState())
                 .pinCode(request.getPinCode())
+                .active(true)
                 .build();
     }
 
