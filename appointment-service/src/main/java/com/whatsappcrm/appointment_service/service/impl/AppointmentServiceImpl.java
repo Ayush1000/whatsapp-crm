@@ -1,5 +1,6 @@
 package com.whatsappcrm.appointment_service.service.impl;
 
+import com.whatsappcrm.appointment_service.client.PatientClient;
 import com.whatsappcrm.appointment_service.dto.request.CreateAppointmentRequest;
 import com.whatsappcrm.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.whatsappcrm.appointment_service.dto.response.AppointmentResponse;
@@ -19,6 +20,7 @@ public class AppointmentServiceImpl
         implements AppointmentService {
 
     private final AppointmentRepository repository;
+    private final PatientClient patientClient;
 
     private Long getCurrentTenantId() {
         return 1L;
@@ -32,7 +34,9 @@ public class AppointmentServiceImpl
         // Later this will come from authenticated user context.
         Long tenantId = getCurrentTenantId();
 
-
+        patientClient.validatePatientExists(
+                request.getPatientId()
+        );
         boolean conflict = repository.hasOverlappingAppointment(
                 tenantId,
                 request.getDoctorId(),
