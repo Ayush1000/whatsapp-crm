@@ -79,7 +79,7 @@ class PatientControllerIntegrationTest {
                 .state("Maharashtra")
                 .pinCode("411001")
                 .build();
-
+        patient.setTenantId(1L);
         Patient savedPatient = patientRepository.save(patient);
 
         mockMvc.perform(
@@ -113,7 +113,7 @@ class PatientControllerIntegrationTest {
                 .lastName("Gupta")
                 .mobileNumber("9876543211")
                 .build();
-
+        patient.setTenantId(1L);
         Patient savedPatient = patientRepository.save(patient);
 
         mockMvc.perform(
@@ -141,7 +141,7 @@ class PatientControllerIntegrationTest {
                 .lastName("Gupta")
                 .mobileNumber("9876543210")
                 .build();
-
+        patient.setTenantId(1L);
         Patient savedPatient = patientRepository.save(patient);
 
         mockMvc.perform(

@@ -2,13 +2,17 @@ package com.whatsappcrm.patient_service.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @MappedSuperclass
+@NoArgsConstructor
+@SuperBuilder
 public abstract class BaseEntity {
 
     @Id

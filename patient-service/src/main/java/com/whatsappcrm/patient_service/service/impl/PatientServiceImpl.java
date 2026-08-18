@@ -25,10 +25,20 @@ import java.util.stream.Collectors;
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository repository;
 
+
+    private Long getCurrentTenantId() {
+        return 1L;
+    }
+
     @Override
     public PatientResponse createPatient(CreatePatientRequest request) {
 
-        if (repository.existsByMobileNumber(request.getMobileNumber())) {
+        Long tenantId = getCurrentTenantId();
+
+        if (repository.existsByTenantIdAndMobileNumber(
+                tenantId,
+                request.getMobileNumber())) {
+
             throw new ResourceAlreadyExistsException(
                     "Patient already exists with mobile number "
                             + request.getMobileNumber()
@@ -36,6 +46,7 @@ public class PatientServiceImpl implements PatientService {
         }
 
         Patient patient = PatientMapper.toEntity(request);
+        patient.setTenantId(tenantId);
 
         patient = repository.save(patient);
 
@@ -47,15 +58,13 @@ public class PatientServiceImpl implements PatientService {
             Long id,
             UpdatePatientRequest request) {
 
-        Patient patient = repository.findById(id)
-                .orElseThrow(() ->
-                        new PatientNotFoundException(
-                                "Patient not found with id " + id));
+        Patient patient = findPatientById(id);
 
         if (request.getMobileNumber() != null
                 && !request.getMobileNumber()
                 .equals(patient.getMobileNumber())
-                && repository.existsByMobileNumber(
+                && repository.existsByTenantIdAndMobileNumber(
+                getCurrentTenantId(),
                 request.getMobileNumber())) {
 
             throw new ResourceAlreadyExistsException(
@@ -80,7 +89,8 @@ public class PatientServiceImpl implements PatientService {
     }
     private Patient findPatientById(Long id) {
 
-        return repository.findById(id)
+        return repository
+                .findByTenantIdAndId(getCurrentTenantId(), id)
                 .orElseThrow(() ->
                         new PatientNotFoundException(
                                 "Patient not found with id " + id));
@@ -99,7 +109,10 @@ public class PatientServiceImpl implements PatientService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return repository.findAll(pageable)
+        return repository.findAllByTenantId(
+                        getCurrentTenantId(),
+                        pageable
+                )
                 .map(PatientMapper::toResponse);
     }
 
@@ -116,7 +129,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientResponse getByMobile(String mobileNumber) {
 
-        Patient patient = repository.findByMobileNumber(mobileNumber)
+        Patient patient = repository.findByTenantIdAndMobileNumber(
+                        getCurrentTenantId(),
+                        mobileNumber
+                )
                 .orElseThrow(() ->
                         new PatientNotFoundException("Patient not found"));
 
@@ -136,14 +152,14 @@ public class PatientServiceImpl implements PatientService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
+        Long tenantId = getCurrentTenantId();
+
         Page<Patient> patients =
-                repository
-                        .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrMobileNumberContaining(
-                                keyword,
-                                keyword,
-                                keyword,
-                                pageable
-                        );
+                repository.searchPatients(
+                        tenantId,
+                        keyword,
+                        pageable
+                );
 
         return patients.map(PatientMapper::toResponse);
     }

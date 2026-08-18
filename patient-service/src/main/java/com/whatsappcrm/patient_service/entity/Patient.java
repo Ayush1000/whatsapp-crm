@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
@@ -18,8 +19,8 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Patient extends BaseEntity {
+@SuperBuilder
+public class Patient extends TenantAwareEntity {
     @Column(nullable = false)
     private String firstName;
 
