@@ -16,4 +16,13 @@ public class RestClientConfig {
                 .baseUrl(patientServiceUrl)
                 .build();
     }
+
+    @Bean
+    public RestClient doctorRestClient(
+            @Value("${doctor-service.url}") String doctorServiceUrl) {
+
+        return RestClient.builder()
+                .baseUrl(doctorServiceUrl)
+                .build();
+    }
 }

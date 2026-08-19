@@ -1,5 +1,6 @@
 package com.whatsappcrm.appointment_service.service.impl;
 
+import com.whatsappcrm.appointment_service.client.DoctorClient;
 import com.whatsappcrm.appointment_service.client.PatientClient;
 import com.whatsappcrm.appointment_service.dto.request.CreateAppointmentRequest;
 import com.whatsappcrm.appointment_service.dto.request.UpdateAppointmentRequest;
@@ -21,7 +22,7 @@ public class AppointmentServiceImpl
 
     private final AppointmentRepository repository;
     private final PatientClient patientClient;
-
+    private final DoctorClient doctorClient;
     private Long getCurrentTenantId() {
         return 1L;
     }
@@ -33,10 +34,15 @@ public class AppointmentServiceImpl
         // Temporary tenant ID.
         // Later this will come from authenticated user context.
         Long tenantId = getCurrentTenantId();
-
+        // validate patient
         patientClient.validatePatientExists(
                 request.getPatientId()
         );
+        // validate doctor
+        doctorClient.validateDoctorExists(
+                request.getDoctorId()
+        );
+        //check overlap
         boolean conflict = repository.hasOverlappingAppointment(
                 tenantId,
                 request.getDoctorId(),
@@ -50,6 +56,7 @@ public class AppointmentServiceImpl
                     "Doctor already has an appointment during this time"
             );
         }
+        //create appointment
         Appointment appointment =
                 AppointmentMapper.toEntity(request, tenantId);
 
