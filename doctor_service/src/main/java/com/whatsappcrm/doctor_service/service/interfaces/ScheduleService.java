@@ -4,9 +4,12 @@ import com.whatsappcrm.doctor_service.dto.request.CreateClinicHolidayRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorLeaveRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorScheduleRequest;
 import com.whatsappcrm.doctor_service.dto.response.ClinicHolidayResponse;
+import com.whatsappcrm.doctor_service.dto.response.DoctorAvailabilityResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorLeaveResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorScheduleResponse;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface ScheduleService {
@@ -61,4 +64,11 @@ public interface ScheduleService {
     );
 
     void deleteHoliday(Long holidayId);
+
+    DoctorAvailabilityResponse checkAvailability(
+            Long doctorId,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime
+    );
 }

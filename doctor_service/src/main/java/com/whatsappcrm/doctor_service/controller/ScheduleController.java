@@ -4,6 +4,7 @@ import com.whatsappcrm.doctor_service.dto.request.CreateClinicHolidayRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorLeaveRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorScheduleRequest;
 import com.whatsappcrm.doctor_service.dto.response.ClinicHolidayResponse;
+import com.whatsappcrm.doctor_service.dto.response.DoctorAvailabilityResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorLeaveResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorScheduleResponse;
 import com.whatsappcrm.doctor_service.service.interfaces.ScheduleService;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -177,5 +180,22 @@ public class ScheduleController {
         scheduleService.deleteHoliday(holidayId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/availability/doctor/{doctorId}")
+    public ResponseEntity<DoctorAvailabilityResponse> checkAvailability(
+            @PathVariable Long doctorId,
+            @RequestParam LocalDate date,
+            @RequestParam LocalTime startTime,
+            @RequestParam LocalTime endTime) {
+
+        return ResponseEntity.ok(
+                scheduleService.checkAvailability(
+                        doctorId,
+                        date,
+                        startTime,
+                        endTime
+                )
+        );
     }
 }
