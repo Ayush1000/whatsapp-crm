@@ -4,6 +4,7 @@ import com.whatsappcrm.doctor_service.dto.request.CreateClinicHolidayRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorLeaveRequest;
 import com.whatsappcrm.doctor_service.dto.request.CreateDoctorScheduleRequest;
 import com.whatsappcrm.doctor_service.dto.response.ClinicHolidayResponse;
+import com.whatsappcrm.doctor_service.dto.response.DoctorAvailabilityResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorLeaveResponse;
 import com.whatsappcrm.doctor_service.dto.response.DoctorScheduleResponse;
 import com.whatsappcrm.doctor_service.entity.ClinicHoliday;
@@ -20,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -505,6 +508,100 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .tenantId(holiday.getTenantId())
                 .holidayDate(holiday.getHolidayDate())
                 .description(holiday.getDescription())
+                .build();
+    }
+
+    @Override
+    public DoctorAvailabilityResponse checkAvailability(
+            Long doctorId,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime) {
+
+        Long tenantId = getCurrentTenantId();
+
+        validateDoctorBelongsToClinic(
+                tenantId,
+                doctorId
+        );
+
+        validateTimeRange(startTime, endTime);
+
+        // 1. Clinic holiday
+        if (holidayRepository.existsByTenantIdAndHolidayDate(
+                tenantId,
+                date)) {
+
+            return DoctorAvailabilityResponse.builder()
+                    .doctorId(doctorId)
+                    .available(false)
+                    .reason("CLINIC_HOLIDAY")
+                    .build();
+        }
+
+        // 2. Doctor must have a schedule covering the requested period
+        List<DoctorSchedule> schedules =
+                scheduleRepository
+                        .findByTenantIdAndDoctorIdAndDayOfWeekAndActiveTrue(
+                                tenantId,
+                                doctorId,
+                                date.getDayOfWeek()
+                        );
+
+        boolean insideWorkingHours =
+                schedules.stream()
+                        .anyMatch(schedule ->
+                                !startTime.isBefore(schedule.getStartTime())
+                                        && !endTime.isAfter(schedule.getEndTime())
+                        );
+
+        if (!insideWorkingHours) {
+
+            return DoctorAvailabilityResponse.builder()
+                    .doctorId(doctorId)
+                    .available(false)
+                    .reason("OUTSIDE_WORKING_HOURS")
+                    .build();
+        }
+
+        // 3. Doctor leave
+        List<DoctorLeave> leaves =
+                leaveRepository
+                        .findByTenantIdAndDoctorIdAndLeaveDate(
+                                tenantId,
+                                doctorId,
+                                date
+                        );
+
+        for (DoctorLeave leave : leaves) {
+
+            // Full-day leave
+            if (leave.getStartTime() == null
+                    && leave.getEndTime() == null) {
+
+                return DoctorAvailabilityResponse.builder()
+                        .doctorId(doctorId)
+                        .available(false)
+                        .reason("DOCTOR_ON_LEAVE")
+                        .build();
+            }
+
+            // Partial-day overlap
+            if (startTime.isBefore(leave.getEndTime())
+                    && endTime.isAfter(leave.getStartTime())) {
+
+                return DoctorAvailabilityResponse.builder()
+                        .doctorId(doctorId)
+                        .available(false)
+                        .reason("DOCTOR_ON_LEAVE")
+                        .build();
+            }
+        }
+
+        return DoctorAvailabilityResponse.builder()
+                .doctorId(doctorId)
+                .available(true)
+                .reason("AVAILABLE")
                 .build();
     }
 }

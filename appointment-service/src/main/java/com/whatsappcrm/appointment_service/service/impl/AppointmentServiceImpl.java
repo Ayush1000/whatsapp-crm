@@ -5,8 +5,10 @@ import com.whatsappcrm.appointment_service.client.PatientClient;
 import com.whatsappcrm.appointment_service.dto.request.CreateAppointmentRequest;
 import com.whatsappcrm.appointment_service.dto.request.UpdateAppointmentRequest;
 import com.whatsappcrm.appointment_service.dto.response.AppointmentResponse;
+import com.whatsappcrm.appointment_service.dto.response.DoctorAvailabilityResponse;
 import com.whatsappcrm.appointment_service.entity.Appointment;
 import com.whatsappcrm.appointment_service.exception.AppointmentNotFoundException;
+import com.whatsappcrm.appointment_service.exception.DoctorUnavailableException;
 import com.whatsappcrm.appointment_service.exception.ResourceAlreadyExistsException;
 import com.whatsappcrm.appointment_service.mapper.AppointmentMapper;
 import com.whatsappcrm.appointment_service.repository.AppointmentRepository;
@@ -14,6 +16,9 @@ import com.whatsappcrm.appointment_service.service.interfaces.AppointmentService
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +47,26 @@ public class AppointmentServiceImpl
         doctorClient.validateDoctorExists(
                 request.getDoctorId()
         );
+
+        DoctorAvailabilityResponse availability =
+                doctorClient.checkAvailability(
+                        request.getDoctorId(),
+                        request.getAppointmentDate(),
+                        request.getStartTime(),
+                        request.getEndTime()
+                );
+
+        if (availability == null || !availability.isAvailable()) {
+
+            String reason = availability != null
+                    ? availability.getReason()
+                    : "UNKNOWN";
+
+            throw new DoctorUnavailableException(
+                    "Doctor is not available for the requested slot. Reason: "
+                            + reason
+            );
+        }
         //check overlap
         boolean conflict = repository.hasOverlappingAppointment(
                 tenantId,
@@ -112,6 +137,54 @@ public class AppointmentServiceImpl
                 .orElseThrow(() ->
                         new AppointmentNotFoundException(
                                 "Appointment not found with id " + id));
+
+        Long doctorId =
+                request.getDoctorId() != null
+                        ? request.getDoctorId()
+                        : appointment.getDoctorId();
+
+        LocalDate appointmentDate =
+                request.getAppointmentDate() != null
+                        ? request.getAppointmentDate()
+                        : appointment.getAppointmentDate();
+
+        LocalTime startTime =
+                request.getStartTime() != null
+                        ? request.getStartTime()
+                        : appointment.getStartTime();
+
+        LocalTime endTime =
+                request.getEndTime() != null
+                        ? request.getEndTime()
+                        : appointment.getEndTime();
+
+        if (!startTime.isBefore(endTime)) {
+            throw new IllegalArgumentException(
+                    "Start time must be before end time"
+            );
+        }
+        doctorClient.validateDoctorExists(doctorId);
+
+        DoctorAvailabilityResponse availability =
+                doctorClient.checkAvailability(
+                        doctorId,
+                        appointmentDate,
+                        startTime,
+                        endTime
+                );
+        if (availability == null || !availability.isAvailable()) {
+
+            String reason = availability != null
+                    ? availability.getReason()
+                    : "UNKNOWN";
+
+            throw new DoctorUnavailableException(
+                    "Doctor is not available for the requested slot. Reason: "
+                            + reason
+            );
+        }
+
+
         boolean conflict = repository.hasOverlappingAppointmentForUpdate(
                 tenantId,
                 id,
