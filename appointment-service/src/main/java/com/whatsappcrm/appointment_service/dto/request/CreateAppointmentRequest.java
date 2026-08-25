@@ -1,5 +1,7 @@
 package com.whatsappcrm.appointment_service.dto.request;
 
+import com.whatsappcrm.appointment_service.enums.AppointmentType;
+import com.whatsappcrm.appointment_service.enums.VisitType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,4 +30,12 @@ public class CreateAppointmentRequest {
     private String reason;
 
     private String notes;
+
+    @NotNull(message = "Visit type is required")
+    private VisitType visitType;
+
+    @NotNull
+    private AppointmentType appointmentType = AppointmentType.SCHEDULED;
+
+    private String overrideReason;
 }

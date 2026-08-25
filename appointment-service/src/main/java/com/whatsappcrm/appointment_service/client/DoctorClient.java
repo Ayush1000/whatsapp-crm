@@ -1,5 +1,6 @@
 package com.whatsappcrm.appointment_service.client;
 
+import com.whatsappcrm.appointment_service.dto.response.ConsultationPolicyResponse;
 import com.whatsappcrm.appointment_service.dto.response.DoctorAvailabilityResponse;
 import com.whatsappcrm.appointment_service.exception.DoctorNotFoundException;
 
@@ -65,5 +66,18 @@ public class DoctorClient {
                         }
                 )
                 .body(DoctorAvailabilityResponse.class);
+    }
+
+    public ConsultationPolicyResponse getConsultationPolicy(
+            Long doctorId) {
+
+        return doctorRestClient
+                .get()
+                .uri(
+                        "/api/doctors/{doctorId}/consultation-policy",
+                        doctorId
+                )
+                .retrieve()
+                .body(ConsultationPolicyResponse.class);
     }
 }

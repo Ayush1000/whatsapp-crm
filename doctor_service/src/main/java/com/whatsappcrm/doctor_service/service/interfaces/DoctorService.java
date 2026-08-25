@@ -40,4 +40,7 @@ public interface DoctorService {
             Long doctorId,
             ConsultationPolicyRequest request
     );
+    ConsultationPolicyResponse getConsultationPolicy(
+            Long doctorId
+    );
 }
