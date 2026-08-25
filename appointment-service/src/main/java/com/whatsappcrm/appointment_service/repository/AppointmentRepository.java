@@ -1,6 +1,8 @@
 package com.whatsappcrm.appointment_service.repository;
 
 import com.whatsappcrm.appointment_service.entity.Appointment;
+import com.whatsappcrm.appointment_service.enums.AppointmentStatus;
+import com.whatsappcrm.appointment_service.enums.VisitType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -62,5 +65,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("appointmentDate") LocalDate appointmentDate,
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime
+    );
+
+    Optional<Appointment>
+    findFirstByTenantIdAndPatientIdAndDoctorIdAndStatusAndStartsFollowUpWindowTrueOrderByAppointmentDateDescActualEndAtDesc(
+            Long tenantId,
+            Long patientId,
+            Long doctorId,
+            AppointmentStatus status
     );
 }

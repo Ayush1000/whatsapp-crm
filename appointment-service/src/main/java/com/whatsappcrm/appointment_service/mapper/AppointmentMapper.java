@@ -22,6 +22,8 @@ public final class AppointmentMapper {
                 .appointmentDate(request.getAppointmentDate())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
+                .appointmentType(request.getAppointmentType())
+                .visitType(request.getVisitType())
                 .status(AppointmentStatus.BOOKED)
                 .reason(request.getReason())
                 .notes(request.getNotes())
@@ -83,6 +85,8 @@ public final class AppointmentMapper {
                 .notes(appointment.getNotes())
                 .createdDate(appointment.getCreatedDate())
                 .modifiedDate(appointment.getModifiedDate())
+                .visitType(appointment.getVisitType())
+                .consultationFee(appointment.getConsultationFee())
                 .build();
     }
 }

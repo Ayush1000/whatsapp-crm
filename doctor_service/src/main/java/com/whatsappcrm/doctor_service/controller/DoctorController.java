@@ -103,4 +103,14 @@ public class DoctorController {
                 )
         );
     }
+
+    @GetMapping("/{doctorId}/consultation-policy")
+    public ResponseEntity<ConsultationPolicyResponse>
+    getConsultationPolicy(
+            @PathVariable Long doctorId) {
+
+        return ResponseEntity.ok(
+                doctorService.getConsultationPolicy(doctorId)
+        );
+    }
 }

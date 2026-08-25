@@ -72,4 +72,33 @@ public class AppointmentController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/check-in")
+    public ResponseEntity<AppointmentResponse> checkIn(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                appointmentService
+                        .checkInAppointment(id)
+        );
+    }
+    @PostMapping("/{id}/start")
+    public ResponseEntity<AppointmentResponse> start(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                appointmentService
+                        .startAppointment(id)
+        );
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<AppointmentResponse> complete(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                appointmentService
+                        .completeAppointment(id)
+        );
+    }
 }

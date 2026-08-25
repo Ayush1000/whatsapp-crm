@@ -357,4 +357,45 @@ public class DoctorServiceImpl implements DoctorService {
 
         doctorClinicRepository.save(association);
     }
+
+    @Override
+    public ConsultationPolicyResponse getConsultationPolicy(
+            Long doctorId) {
+
+        Long tenantId = getCurrentTenantId();
+
+        doctorClinicRepository
+                .findByTenantIdAndDoctorId(
+                        tenantId,
+                        doctorId
+                )
+                .orElseThrow(() ->
+                        new DoctorNotFoundException(
+                                "Doctor is not associated with this clinic"
+                        )
+                );
+
+        ConsultationPolicy policy =
+                consultationPolicyRepository
+                        .findByTenantIdAndDoctorId(
+                                tenantId,
+                                doctorId
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Consultation policy is not configured for doctor "
+                                                + doctorId
+                                )
+                        );
+
+        return ConsultationPolicyResponse.builder()
+                .id(policy.getId())
+                .tenantId(policy.getTenantId())
+                .doctorId(policy.getDoctorId())
+                .consultationFee(policy.getConsultationFee())
+                .freeFollowUpDays(policy.getFreeFollowUpDays())
+                .reportReviewFree(policy.isReportReviewFree())
+                .followUpFee(policy.getFollowUpFee())
+                .build();
+    }
 }
